@@ -6,7 +6,8 @@ import {
   useCallback,
 } from "react";
 
-const BASE_URL = "http://localhost:9000";
+// Import your cities.json file for the local data.
+import citiesData from "../data/cities.json";
 
 const CitiesContext = createContext();
 
@@ -66,58 +67,40 @@ function CitiesProvider({ children }) {
     initialState
   );
 
-  useEffect(function () {
-    async function fetchCities() {
+  useEffect(() => {
+    // Automatically load data from cities.json when the app starts
+    function loadCities() {
       dispatch({ type: "loading" });
-
       try {
-        const res = await fetch(`${BASE_URL}/cities`);
-        const data = await res.json();
-        dispatch({ type: "cities/loaded", payload: data });
-      } catch {
-        dispatch({
-          type: "rejected",
-          payload: "There was an error loading cities...",
-        });
+        dispatch({ type: "cities/loaded", payload: citiesData.cities });
+      } catch (error) {
+        dispatch({ type: "rejected", payload: "Failed to load cities data" });
       }
     }
-    fetchCities();
+
+    loadCities();
   }, []);
 
   const getCity = useCallback(
     async function getCity(id) {
-      if (Number(id) === currentCity.id) return;
-
-      dispatch({ type: "loading" });
-
-      try {
-        const res = await fetch(`${BASE_URL}/cities/${id}`);
-        const data = await res.json();
-        dispatch({ type: "city/loaded", payload: data });
-      } catch {
+      const selectedCity = cities.find((city) => city.id === id);
+      if (selectedCity) {
+        dispatch({ type: "city/loaded", payload: selectedCity });
+      } else {
         dispatch({
           type: "rejected",
-          payload: "There was an error loading the city...",
+          payload: "City not found",
         });
       }
     },
-    [currentCity.id]
+    [cities]
   );
 
   async function createCity(newCity) {
     dispatch({ type: "loading" });
 
     try {
-      const res = await fetch(`${BASE_URL}/cities`, {
-        method: "POST",
-        body: JSON.stringify(newCity),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await res.json();
-
-      dispatch({ type: "city/created", payload: data });
+      dispatch({ type: "city/created", payload: newCity });
     } catch {
       dispatch({
         type: "rejected",
@@ -130,10 +113,6 @@ function CitiesProvider({ children }) {
     dispatch({ type: "loading" });
 
     try {
-      await fetch(`${BASE_URL}/cities/${id}`, {
-        method: "DELETE",
-      });
-
       dispatch({ type: "city/deleted", payload: id });
     } catch {
       dispatch({
