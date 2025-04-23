@@ -1,5 +1,7 @@
 # The World Wise ( Tracking ) App
 
+<img src="./public/World.PNG" style="height: 400px; width: 100%; border-radius: 10px" />
+
 ### Live Demo: https://the-world-wise-app.vercel.app/
 
 ### Description:
